@@ -32,7 +32,7 @@
             } ?>
             <?php if (strlen($_GET["mensagem"]) != 0) {
                 echo '<span class="text-warning">
-                    <p>Em breve trataremos da sua mensagem:</p>
+                    <p>Em breve trataremos da sua mensagem: </p>
                 </span>
                 <span class="text-justify">' .
                     $_GET["mensagem"] . '</p>
