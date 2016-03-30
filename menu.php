@@ -7,14 +7,14 @@
 				<span class="icon-bar"></span>
 				<span class="icon-bar"></span>
 			</button>
-			<a class="navbar-brand" href="#">GlicoLog</a>
+			<a class="navbar-brand" href="./index.php">GlicoLog</a>
 		</div>
 		<div id="navbar" class="navbar-collapse collapse">
 			<ul class="nav navbar-nav">
-				<li><a href="index.php">Home</a></li>
-				<li><a href="#empresa">Empresa</a></li>
-				<li><a href="#produtos">Produtos</a></li>
-				<li><a href="#servicos">Serviços</a></li>
+				<li><a href="./index.php">Home</a></li>
+				<li><a href="./empresa.php">Empresa</a></li>
+				<li><a href="./produtos.php">Produtos</a></li>
+				<li><a href="./servicos.php">Serviços</a></li>
 			</ul>
 			<ul class="nav navbar-nav navbar-right">
 				<li><a href="./contato.php">Contato<span class="sr-only">(current)</span></a></li>
