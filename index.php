@@ -10,7 +10,7 @@ $arr_response = ['formresult' => 'formresult'];
 
 
 /*
- * Função para verificar se a rota está no array de rotas válidas (principais ou de resposta) e se o arquivo existe
+ * Função para verificar se a rota está no array de rotas válidas (principais ou de resposta) e se o arquivo existe.
  */
 $rota_found = function ($caminho, $arr_rotas, $arr_response) {
     $filename = $caminho . '.php';
