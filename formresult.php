@@ -1,16 +1,3 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>GlicoLog - Contato</title>
-    <!-- Bootstrap -->
-    <link href="./css/bootstrap.min.css" rel="stylesheet">
-    <link href="navbar-fixed-top.css" rel="stylesheet">
-</head>
-<body>
-<?php require_once("menu.php"); ?>
 <div class="container-fluid">
 
     <div class="row">
@@ -26,7 +13,7 @@
                 echo "<h3>Erro no parametro Nome</h3>";
             } ?>
             <?php if (strlen($_GET["email"]) != 0 && strlen($_GET["assunto"]) != 0) {
-                echo "<h4>Recebemos seu contato para o email:" . $_GET["email"] ."</br> para o assunto: " . $_GET["assunto"] . ".</h4>";
+                echo "<h4>Recebemos seu contato para o email:" . $_GET["email"] . "</br> para o assunto: " . $_GET["assunto"] . ".</h4>";
             } else {
                 echo "<h4>Erro no parametro Email ou Assunto</h4>";
             } ?>
@@ -36,9 +23,9 @@
                 </span>
                 <span class="text-justify">' .
                     $_GET["mensagem"] . '</p>
-            </span>' ;
+            </span>';
             } else {
-            echo "<p>Erro no parametro Mensagem</p>";
+                echo "<p>Erro no parametro Mensagem</p>";
             } ?>
         </div>
         <div class="col-md-2 text-info">
@@ -46,8 +33,3 @@
         </div>
     </div>
 </div>
-<?php require_once("rodape.php"); ?>
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
-<script src="./js/bootstrap.js"></script>
-</body>
-</html>
