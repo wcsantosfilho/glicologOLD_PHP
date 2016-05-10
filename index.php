@@ -3,21 +3,35 @@
 $rota = parse_url("http://" . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI']);
 // Tratamento com Expressoes Regulares para tirar a '/' do inicio da string
 $caminho = preg_replace('/^\//', '', $rota['path']);
-// Array de rotas válidas para montar o menu
-$arr_rotas = ['Home' => 'home', 'Empresa' => 'empresa', 'Produtos' => 'produtos', 'Servicos' => 'servicos', 'Contato' => 'contato'];
-// Array de rotas válidas para resposta (resposta de formulário de contato, p.ex.)
-$arr_response = ['formresult' => 'formresult'];
 
+try {
+    $conexao = new \PDO("mysql:host=localhost;dbname=glicolog", "root", "root");
+} catch (\PDOException $e) {
+    echo "Erro na conexão ao Banco de Dados \n";
+    echo $e->getMessage() . "\n";
+    echo $e->getTraceAsString() . "\n";
+}
 
 /*
  * Função para verificar se a rota está no array de rotas válidas (principais ou de resposta) e se o arquivo existe.
  */
-$rota_found = function ($caminho, $arr_rotas, $arr_response) {
-    $filename = $caminho . '.php';
-    if (file_exists($filename)) {
-        return in_array($caminho, $arr_rotas) || in_array($caminho, $arr_response);
-    } else {
+$rota_found = function ($conexao, $caminho) {
+    try {
+        $sqlcmd = "Select arquivo from rotas where rota = :rota"; // Monta SELECT para buscar na tabela Rotas
+        $stmt = $conexao->prepare($sqlcmd);
+        $stmt->bindValue("rota", $caminho);
+        $stmt->execute();
+        $sqlresult = $stmt->fetch(PDO::FETCH_ASSOC); // retorna FALSO se o resultado do SELECT for vazio
+    } catch (\PDOException $e) {
+        echo "Erro na conexão ao Banco de Dados \n";
+        echo $e->getMessage() . "\n";
+        echo $e->getTraceAsString() . "\n";
+    }
+
+    if (empty($sqlresult)) {
         return false;
+    } else {
+        return true;
     }
 }
 ?>
@@ -49,9 +63,20 @@ $rota_found = function ($caminho, $arr_rotas, $arr_response) {
         </div>
         <div id="navbar" class="navbar-collapse collapse">
             <ul class="nav navbar-nav">
-                <?php // loop no array de rotas para montar o menu
-                foreach ($arr_rotas as $chave_rota => $rota_menu) {
-                    echo '<li><a href="' . $rota_menu . '">' . $chave_rota . '</a></li>';
+                <?php
+                try {
+                    $sqlcmd = "Select rota, arquivo from rotas where tipo = 'P' "; // Seleciona Rotas do tipo P(ágina)
+                    $stmt = $conexao->prepare($sqlcmd);
+                    $stmt->execute();
+                    $sqlresult = $stmt->fetchAll(PDO::FETCH_ASSOC); // retorna FALSO se o resultado do SELECT for vazio
+                } catch (\PDOException $e) {
+                    echo "Erro na conexão ao Banco de Dados \n";
+                    echo $e->getMessage() . "\n";
+                    echo $e->getTraceAsString() . "\n";
+                }
+
+                foreach ($sqlresult as $rota_menu) {
+                    echo '<li><a href="' . $rota_menu['arquivo'] . '">' . $rota_menu['rota'] . '</a></li>';
                 }
                 ?>
             </ul>
@@ -61,22 +86,56 @@ $rota_found = function ($caminho, $arr_rotas, $arr_response) {
 <!-- Fim do Header -->
 <!-- Chamada para página de conteúdo conforme rota -->
 <div class="container-fluid">
-    <?php // valida as rotas chamadas
+    <?php // monta a página armazenada no banco de dados
     if (strlen($caminho) == 0) {
-        require_once('home.php');
-    } else {
-        if ($rota_found($caminho, $arr_rotas, $arr_response, $rota_ant)) {
-            require_once($caminho . '.php');
-        } else {
-            require_once('pagina404.php');
-            http_response_code(404);
+        $caminho = "home";
+    }
+    if ($rota_found($conexao, $caminho)) {
+        try {
+            $sqlcmd = "Select linhaHTML from paginasHTML where rotas_arquivo = :arquivo"; // Busca as linhas de HTML que formam a página
+            $stmt = $conexao->prepare($sqlcmd);
+            $stmt->bindParam(":arquivo", $caminho);
+            $stmt->execute();
+            $sqlresult = $stmt->fetchAll(PDO::FETCH_ASSOC); // retorna FALSO se o resultado do SELECT for vazio
+        } catch (\PDOException $e) {
+            echo "Erro na seleção ao Banco de Dados \n";
+            echo $e->getMessage() . "\n";
+            echo $e->getTraceAsString() . "\n";
         }
+
+        if (empty($sqlresult)) {
+            echo "<li>A página solicitada não está configurada. Por favor, contate o administrador.</li>";
+            http_response_code(404);
+        } else {
+            foreach ($sqlresult as $linhas) {
+                echo $linhas['linhaHTML'];
+            }
+        }
+    } else {
+        echo "<li>Página não encontrada.</li>li>";
+        http_response_code(404);
     }
     ?>
 </div>
 <!-- Fim da chamada para página de conteúdo -->
 <!-- Carrega o rodapé -->
-<?php require_once("rodape.php"); ?>
+<?php
+try {
+    $sqlcmd = "Select linhaHTML from paginasHTML where rotas_arquivo = 'rodape'"; // Busca as linhas de HTML que formam a página
+    $stmt = $conexao->prepare($sqlcmd);
+    $stmt->bindParam(":arquivo", $caminho);
+    $stmt->execute();
+    $sqlresult = $stmt->fetchAll(PDO::FETCH_ASSOC); // retorna FALSO se o resultado do SELECT for vazio
+} catch (\PDOException $e) {
+    echo "Erro na seleção ao Banco de Dados \n";
+    echo $e->getMessage() . "\n";
+    echo $e->getTraceAsString() . "\n";
+}
+
+foreach ($sqlresult as $linhas) {
+    echo $linhas['linhaHTML'];
+}
+?>
 <!-- Fim da carga do rodapé -->
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
 <script src="./js/bootstrap.js"></script>
