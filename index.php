@@ -80,6 +80,13 @@ $rota_found = function ($conexao, $caminho) {
                 }
                 ?>
             </ul>
+            <form class="navbar-form navbar-left" role="search" action="/busca" method="get">
+                <div class="form-group">
+                    <input type="text" class="form-control" placeholder="Busca" id="textobusca" name="textobusca">
+                </div>
+                <button type="submit" class="btn btn-default"><span class="glyphicon glyphicon-search"
+                                                                    aria-hidden="true"></span></button>
+            </form>
         </div><!--/.nav-collapse -->
     </div><!-- container -->
 </nav>
@@ -90,28 +97,74 @@ $rota_found = function ($conexao, $caminho) {
     if (strlen($caminho) == 0) {
         $caminho = "home";
     }
+    // EXECUTA BUSCA E MONTA RESULTADO
     if ($rota_found($conexao, $caminho)) {
-        try {
-            $sqlcmd = "Select linhaHTML from paginasHTML where rotas_arquivo = :arquivo"; // Busca as linhas de HTML que formam a página
-            $stmt = $conexao->prepare($sqlcmd);
-            $stmt->bindParam(":arquivo", $caminho);
-            $stmt->execute();
-            $sqlresult = $stmt->fetchAll(PDO::FETCH_ASSOC); // retorna FALSO se o resultado do SELECT for vazio
-        } catch (\PDOException $e) {
-            echo "Erro na seleção ao Banco de Dados \n";
-            echo $e->getMessage() . "\n";
-            echo $e->getTraceAsString() . "\n";
-        }
+        if ($caminho == 'busca') {
+            try {
+                $textobusca = "%" . $_GET['textobusca'] . "%";
+                $sqlcmd = "SELECT rotas_arquivo, linhaHTML FROM glicolog.paginasHTML WHERE linhaHTML LIKE :searchtext"; // Busca as linhas de HTML contendo o texto de busca
+                $stmt = $conexao->prepare($sqlcmd);
+                $stmt->bindParam(":searchtext", $textobusca, PDO::PARAM_STR);
+                $stmt->execute();
+                $sqlresult = $stmt->fetchAll(PDO::FETCH_ASSOC); // retorna FALSO se o resultado do SELECT for vazio
+            } catch (\PDOException $e) {
+                echo "Erro na seleção ao Banco de Dados \n";
+                echo $e->getMessage() . "\n";
+                echo $e->getTraceAsString() . "\n";
+            }
+            if (empty($sqlresult)) {
+                echo "<li>Não foram encontrados resultados.</li>";
+            } else {
+                echo "<div class=\"panel panel-default\">";
+                echo "<div class=\"panel-heading\">Resultado da Pesquisa</div>";
+                echo "<table class=\"table\">";
+                echo "<thead>";
+                echo "<tr>";
+                echo "<th>Página</th>";
+                echo "<th>Linha</th>";
+                echo "</tr>";
+                echo "</thead>";
+                echo "<tbody>";
 
-        if (empty($sqlresult)) {
-            echo "<li>A página solicitada não está configurada. Por favor, contate o administrador.</li>";
-            http_response_code(404);
+                foreach ($sqlresult as $searchresult) {
+                    echo '<tr>';
+                    echo '<td><li><a href="' . $searchresult['rotas_arquivo'] . '">' . $searchresult['rotas_arquivo'] . '</a></td><td>' . $searchresult['linhaHTML'] . '</td></li>';
+                    echo '</tr>';
+                }
+                echo "</tbody>";
+                echo "</table>";
+                echo "</div>";
+            }
+
         } else {
-            foreach ($sqlresult as $linhas) {
-                echo $linhas['linhaHTML'];
+            // LEITURA DAS LINHAS DO BANCO DE DADOS
+            try {
+                $sqlcmd = "Select linhaHTML from paginasHTML where rotas_arquivo = :arquivo"; // Busca as linhas de HTML que formam a página
+                $stmt = $conexao->prepare($sqlcmd);
+                $stmt->bindParam(":arquivo", $caminho);
+                $stmt->execute();
+                $sqlresult = $stmt->fetchAll(PDO::FETCH_ASSOC); // retorna FALSO se o resultado do SELECT for vazio
+            } catch (\PDOException $e) {
+                echo "Erro na seleção ao Banco de Dados \n";
+                echo $e->getMessage() . "\n";
+                echo $e->getTraceAsString() . "\n";
+            }
+
+            if (empty($sqlresult)) {
+                // MENSAGEM SE A PAGINA NAO ESTIVER INSERIDA NO BANCO DE DADOS
+                echo "<li>A página solicitada não está configurada. Por favor, contate o administrador.</li>";
+                http_response_code(404);
+            } else {
+                // DEU TUDO CERTO? ENVIA AS LINHAS HTML
+                foreach ($sqlresult as $linhas) {
+                    $str = $linhas['linhaHTML'];
+                    eval('?>'.$str.'<?php ');
+                    //echo $linhas['linhaHTML'];
+                }
             }
         }
     } else {
+        // MENSAGEM SE A ROTA NAO ESTIVER CADASTRADA NO BD
         echo "<li>Página não encontrada.</li>li>";
         http_response_code(404);
     }
@@ -133,7 +186,9 @@ try {
 }
 
 foreach ($sqlresult as $linhas) {
-    echo $linhas['linhaHTML'];
+    $str = $linhas['linhaHTML'];
+    eval('?>'.$str.'<?php ');
+    //echo $linhas['linhaHTML'];
 }
 ?>
 <!-- Fim da carga do rodapé -->
