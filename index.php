@@ -1,4 +1,5 @@
 <?php
+$tipoUsuarioLogado = 'A';
 require_once "conteudoHTML.php";
 
 // Parse da Url para separar os elementos
@@ -67,7 +68,11 @@ $tipo_rota = function ($conexao, $caminho) {
             <ul class="nav navbar-nav">
                 <?php
                 try {
-                    $sqlcmd = "Select rota, arquivo from rotas where  ( tipo = 'P' or tipo = 'F' ) "; // Seleciona Rotas do tipo P(ágina) ou F(ormulario)
+                    if ($tipoUsuarioLogado == 'A') {
+                        $sqlcmd = "Select rota, arquivo from rotas where  ( tipo = 'P' or tipo = 'F' or tipo = 'E' ) "; // Seleciona Rotas do tipo P(ágina) ou F(ormulario) ou E(ditar)
+                    } else {
+                        $sqlcmd = "Select rota, arquivo from rotas where  ( tipo = 'P' or tipo = 'F' ) "; // Seleciona Rotas do tipo P(ágina) ou F(ormulario)
+                    }
                     $stmt = $conexao->prepare($sqlcmd);
                     $stmt->execute();
                     $sqlresult = $stmt->fetchAll(PDO::FETCH_ASSOC); // retorna FALSO se o resultado do SELECT for vazio
@@ -82,6 +87,24 @@ $tipo_rota = function ($conexao, $caminho) {
                 }
                 ?>
             </ul>
+            <?php
+            $usuarioLogado = false;
+            //if (isset($_SESSION["Logado"] and $_SESSION["Logado"] == 1)) {
+            if ($usuarioLogado) {
+                echo "Usuário Logado";
+            } else {
+                echo '<form class="navbar-form navbar-left" role="login" action="/login" method="put">';
+                echo '<div class="form-group" >';
+                echo '<input type="text" class="form-control" placeholder="Usuario" id="usuario" name="usuario">';
+                echo '</div >';
+                echo '<div class="form-group" >';
+                echo '<input type="password" class="form-control" placeholder="Senha" id="senha" name="senha">';
+                echo '</div >';
+                echo '<button type="submit" class="btn btn-default"><span class="glyphicon glyphicon-log-in" aria-hidden="true" >';
+                echo '</span ></button >';
+                echo '</form >';
+            }
+            ?>
             <form class="navbar-form navbar-left" role="search" action="/busca" method="get">
                 <div class="form-group">
                     <input type="text" class="form-control" placeholder="Busca" id="textobusca" name="textobusca">
@@ -184,6 +207,10 @@ switch ($testa_rota) {
             echo $e->getTraceAsString() . "\n";
         }
         geraResultadoBusca($sqlresult, $_GET['textobusca']);
+        break;
+    case "E":
+        // VALIDA SE É UMA SESSAO VALIDA DE ADMINISTRADOR
+        echo "<h2>SESSAO DE ADMINSTRADOR - EDITAR</h2>";
         break;
     default:
         // MENSAGEM SE A ROTA NAO ESTIVER CADASTRADA NO BD

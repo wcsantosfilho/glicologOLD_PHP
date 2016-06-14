@@ -6,7 +6,7 @@ $conn = conexaoDB();
 
 echo "Removendo tabelas\n";
 try {
-    $conn->query("DROP TABLE IF EXISTS paginasHTML, formsHTML, rotas");
+    $conn->query("DROP TABLE IF EXISTS paginasHTML, formsHTML, rotas, usuarios");
 } catch (\PDOException $e) {
     echo $e->getMessage() . "\n";
     echo $e->getTraceAsString() . "\n";
@@ -70,6 +70,26 @@ print_r($conn->errorInfo());
 echo "\n";
 echo "^--^\n";
 
+echo "Criando tabela usuarios \n";
+try {
+    $conn->query("CREATE TABLE usuarios (
+              id BIGINT NOT NULL AUTO_INCREMENT,
+              usuario VARCHAR(45) CHARACTER SET utf8,
+              senha VARCHAR(255) CHARACTER SET utf8,
+              tipo CHAR CHARACTER SET utf8,
+                  PRIMARY KEY (id)
+                  )");
+} catch (\PDOException $e) {
+    echo $e->getMessage() . "\n";
+    echo $e->getTraceAsString() . "\n";
+}
+echo "v--v\n";
+echo $conn->errorCode();
+echo "\n";
+print_r($conn->errorInfo());
+echo "\n";
+echo "^--^\n";
+
 
 
 
@@ -106,6 +126,15 @@ foreach ($arr_response as $rota => $arquivo) {
 $arr_response = ['busca' => 'busca'];
 foreach ($arr_response as $rota => $arquivo) {
     $smt = $conn->prepare("INSERT INTO rotas (rota, arquivo, tipo) value (:rota, :arquivo, 'B')");
+    $smt->bindParam(":rota", $rota);
+    $smt->bindParam(":arquivo", $arquivo);
+    $smt->execute();
+}
+
+// Array de rotas válidas para pagina administrativa
+$arr_response = ['Editar' => 'editar'];
+foreach ($arr_response as $rota => $arquivo) {
+    $smt = $conn->prepare("INSERT INTO rotas (rota, arquivo, tipo) value (:rota, :arquivo, 'E')");
     $smt->bindParam(":rota", $rota);
     $smt->bindParam(":arquivo", $arquivo);
     $smt->execute();
@@ -194,32 +223,32 @@ print_r($conn->errorInfo());
 echo "\n";
 echo "^--^\n";
 
-$smt = $conn->query("
-INSERT INTO glicolog.paginasHTML (rotas_arquivo, linhaHTML) VALUES
-( (SELECT arquivo from glicolog.rotas WHERE rotas.rota ='formresult'), '<div class=\"container-fluid\">' ),
-( (SELECT arquivo from glicolog.rotas WHERE rotas.rota ='formresult'), '    <div class=\"row\">' ),
-( (SELECT arquivo from glicolog.rotas WHERE rotas.rota ='formresult'), '        <div class=\"col-md-2\">' ),
-( (SELECT arquivo from glicolog.rotas WHERE rotas.rota ='formresult'), '                <span class=\"text-info\">' ),
-( (SELECT arquivo from glicolog.rotas WHERE rotas.rota ='formresult'), '                    <p>Agradecemos seu contato!</p>' ),
-( (SELECT arquivo from glicolog.rotas WHERE rotas.rota ='formresult'), '                </span>' ),
-( (SELECT arquivo from glicolog.rotas WHERE rotas.rota ='formresult'), '        </div>' ),
-( (SELECT arquivo from glicolog.rotas WHERE rotas.rota ='formresult'), '        <div class=\"col-md-8\">' ),
-( (SELECT arquivo from glicolog.rotas WHERE rotas.rota ='formresult'), '            <?php if (strlen(\$_GET[\'nome\']) != 0) { echo \"<h3>Prezado \" . \$_GET[\'nome\'] . \"</h3>\";  } else {  echo \"<h3>Erro no parametro Nome</h3>\"; } ?>' ),
-( (SELECT arquivo from glicolog.rotas WHERE rotas.rota ='formresult'), '            <?php if (strlen(\$_GET[\'email\']) != 0 && strlen(\$_GET[\'assunto\']) != 0) { echo \"<h4>Recebemos seu contato para o email:\" . \$_GET[\'email\'] . \"</br> para o assunto: \" . \$_GET[\'assunto\'] . \".</h4>\"; } else { echo \"<h4>Erro no parametro Email ou Assunto</h4>\"; } ?>' ),
-( (SELECT arquivo from glicolog.rotas WHERE rotas.rota ='formresult'), '            <?php if (strlen(\$_GET[\'mensagem\']) != 0) { echo \"<span class=\"text-warning\"><p>Em breve trataremos da sua mensagem: </p></span><span class=\"text-justify\">\" . \$_GET[\'mensagem\'] . \"</p> </span>\"; } else { echo \"<p>Erro no parametro Mensagem</p>\"; } ?>' ),
-( (SELECT arquivo from glicolog.rotas WHERE rotas.rota ='formresult'), '        </div>' ),
-( (SELECT arquivo from glicolog.rotas WHERE rotas.rota ='formresult'), '        <div class=\"col-md-2 text-info\">' ),
-( (SELECT arquivo from glicolog.rotas WHERE rotas.rota ='formresult'), '            <p>Sua mensagem será lida e tratada em até 5 dias úteis!</p>' ),
-( (SELECT arquivo from glicolog.rotas WHERE rotas.rota ='formresult'), '        </div>' ),
-( (SELECT arquivo from glicolog.rotas WHERE rotas.rota ='formresult'), '    </div>' ),
-( (SELECT arquivo from glicolog.rotas WHERE rotas.rota ='formresult'), '</div>' )
-");
-echo "v--v\n";
-echo "-- formresult --\n";
+$arr_usuarios = ['admin' => 'admin', 'wfilho' => 'wfilho' ];
+
+echo "Inserindo dados de usuarios\n";
+foreach ($arr_usuarios as $usuario => $senhaU) {
+    echo "\nUsuario:" . $usuario;
+    echo "\nSenha  :" . $senhaU;
+    $senhaMod = password_hash($senhaU, PASSWORD_DEFAULT);
+    if ($usuario == 'admin') {
+        $tipouser = 'A';
+    } else {
+        $tipouser = 'U';
+    }
+    $smt = $conn->prepare("INSERT INTO usuarios (usuario, senha, tipo) value (:user, :passwd, :tipoU)");
+    $smt->bindParam(":user", $usuario);
+    $smt->bindParam(":passwd", $senhaMod);
+    $smt->bindParam(":tipoU", $tipouser);
+    $smt->execute();
+}
+
+echo "\nv--v\n";
+echo "-- usuarios --\n";
 echo "\n";
 print_r($conn->errorInfo());
 echo "\n";
 echo "^--^\n";
+
 
 
 echo "Validando Rotas\n";
@@ -239,6 +268,16 @@ $result = $smt->fetchAll(PDO::FETCH_ASSOC);
 foreach ($result as $value) {
     echo $value['rotas_arquivo'] . " - " . $value['linhaHTML'] . "\n";
 }
+
+echo "Validando Usuarios\n";
+$smt = $conn->prepare("Select * from usuarios");
+$smt->execute();
+$result = $smt->fetchAll(PDO::FETCH_ASSOC);
+
+foreach ($result as $value) {
+    echo $value['usuario'] . " - " . $value['senha'] . " : " . $value['tipo'] . "\n";
+}
+
 
 
 echo "#### Concluido ####\n";
