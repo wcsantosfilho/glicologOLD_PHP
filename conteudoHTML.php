@@ -180,7 +180,8 @@ function geraResposta($responseGet)
 
 }
 
-function geraResultadoBusca ($sqlresult, $textobusca) {
+function geraResultadoBusca($sqlresult, $textobusca)
+{
     if (empty($sqlresult)) {
         echo '<div class="panel panel-default">';
         echo '<div class="panel-heading">Não foram encontrados resultados para: <b>' . $textobusca . '</b>.</div>';
@@ -216,4 +217,76 @@ function geraResultadoBusca ($sqlresult, $textobusca) {
         echo '</div>';
     }
 
+}
+
+function geraFormEscolhePaginaParaEditar($sqlresult)
+{
+    if (empty($sqlresult)) {
+        echo '<div class="panel panel-default">';
+        echo '<div class="panel-heading">Não foram encontrados resultados para: <b>' . $textobusca . '</b>.</div>';
+    } else {
+        echo '<div class="container-fluid">';
+        echo '<div class="row">';
+        echo '<div class="col-md-2">';
+        echo '</div>'; // col-md-2
+        echo '<div class="col-md-8">';
+        echo '<div class="panel panel-default">';
+        echo '<div class="panel-heading">Páginas para Edição</div>';
+        echo '<div class="panel-body">';
+        echo '<form class="form" role="form" id="optaEdita" action="/ckedit" method="get">';
+        echo '<div class="control-group">';
+        echo '<div class="controls">';
+        foreach ($sqlresult as $rota_menu) {
+            echo '<div class="radio">';
+            echo '<label>' . '<input type="radio" name="editSelect" id="' . $rota_menu['arquivo'] . '" value="' . $rota_menu['arquivo'] . '">' . $rota_menu['rota'] . '</label>';
+            echo '</div>';
+        }
+        echo '</div>';
+        echo '</div>';
+        echo '<input class="btn btn-primary" type="submit" value="Edita página selecionada!"/>';
+        echo '</form>';
+        echo '</div>'; // panel-body
+        echo '</div>'; // col-md-8
+        echo '<div class="col-md-2">';
+        echo '</div>'; // col-md-2
+        echo '</div>';
+        echo '</div>';
+    }
+    echo '</div>'; // panel-heading ou row
+    echo '</div>'; // panel-default ou container-fluid
+}
+
+function geraFormComCkeditor($sqlresult)
+{
+    if (empty($sqlresult)) {
+        echo '<div class="panel panel-default">';
+        echo '<div class="panel-heading">A consulta não trouxe resultados!</div>';
+    } else {
+        $conteudo = "";
+        foreach ($sqlresult as $linhas_html) {
+            $conteudo.=$linhas_html['linhaHTML'];
+        }
+        echo '<div class="container-fluid">';
+        echo '<div class="row">';
+        echo '<div class="col-md-2">';
+        echo '</div>'; // col-md-2
+        echo '<div class="col-md-8">';
+        echo '<div class="panel panel-default">';
+        echo '<div class="panel-heading">Edite a página selecionada e clique em Gravar ao final da Edição.</div>';
+        echo '<div class="panel-body">';
+        echo '<form class="navbar - form navbar - left" role="gravar" action="/gravar" method="put">';
+        echo '<div class="form - group">';
+        echo '<textarea name="editor1">' . $conteudo . '</textarea>';
+        echo '</div>';
+        echo '<br>';
+        echo '<button type="submit" class="btn btn -default">Gravar</button>';
+        echo '</form>';
+        echo '</div>'; // panel-body
+        echo '</div>'; // panel-default
+        echo '</div>'; // col-md-8
+        echo '<div class="col-md-2">';
+        echo '</div>'; // col-md-2
+    }
+    echo '</div>'; // panel-heading ou row
+    echo '</div>'; // panel ou container-fluid
 }

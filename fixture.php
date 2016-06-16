@@ -140,6 +140,15 @@ foreach ($arr_response as $rota => $arquivo) {
     $smt->execute();
 }
 
+// Array de rotas válidas para edição propriamente dita com CkEditor
+$arr_response = ['CkEdit' => 'ckedit'];
+foreach ($arr_response as $rota => $arquivo) {
+    $smt = $conn->prepare("INSERT INTO rotas (rota, arquivo, tipo) value (:rota, :arquivo, 'C')");
+    $smt->bindParam(":rota", $rota);
+    $smt->bindParam(":arquivo", $arquivo);
+    $smt->execute();
+}
+
 
 echo "Inserindo paginas html\n";
 $smt = $conn->query("

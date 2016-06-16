@@ -88,7 +88,7 @@ $tipo_rota = function ($conexao, $caminho) {
                 ?>
             </ul>
             <?php
-            $usuarioLogado = false;
+            $usuarioLogado = true;
             //if (isset($_SESSION["Logado"] and $_SESSION["Logado"] == 1)) {
             if ($usuarioLogado) {
                 echo "Usuário Logado";
@@ -124,6 +124,7 @@ if (strlen($caminho) == 0) {
 }
 // EXECUTA BUSCA E MONTA RESULTADO
 $testa_rota = $tipo_rota($conexao, $caminho);
+
 switch ($testa_rota) {
     case "P":
         // LEITURA DAS LINHAS DO BANCO DE DADOS
@@ -210,13 +211,50 @@ switch ($testa_rota) {
         break;
     case "E":
         // VALIDA SE É UMA SESSAO VALIDA DE ADMINISTRADOR
-        echo "<h2>SESSAO DE ADMINSTRADOR - EDITAR</h2>";
+        if ($tipoUsuarioLogado == 'A') {
+            try {
+                $sqlcmd = "Select rota, arquivo from rotas where  ( tipo = 'P' ) "; // Seleciona Rotas do tipo P(ágina)
+                $stmt = $conexao->prepare($sqlcmd);
+                $stmt->execute();
+                $sqlresult = $stmt->fetchAll(PDO::FETCH_ASSOC); // retorna FALSO se o resultado do SELECT for vazio
+            } catch (\PDOException $e) {
+                echo "Erro na conexão ao Banco de Dados \n";
+                echo $e->getMessage() . "\n";
+                echo $e->getTraceAsString() . "\n";
+            }
+            // DEU TUDO CERTO? CONSTROI O FORM com RADIOBUTTON
+            geraFormEscolhePaginaParaEditar ($sqlresult);
+            } else {
+            // MENSAGEM SE A PAGINA NAO ESTIVER INSERIDA NO BANCO DE DADOS
+            echo "<li>Acesso não permitido!</li>";
+        }
+        break;
+    case "C":
+        // VALIDA SE É UMA SESSAO VALIDA DE ADMINISTRADOR
+        $paginaSelecionada = $_GET['editSelect'];
+        if ($tipoUsuarioLogado == 'A' and $caminho == 'ckedit') {
+            try {
+                $sqlcmd = "SELECT rotas_arquivo, taginicial, tagfinal , linhaHTML FROM glicolog.paginasHTML WHERE rotas_arquivo = :paginaEdita"; // Busca as linhas de HTML contendo o texto de busca
+                $stmt = $conexao->prepare($sqlcmd);
+                $stmt->bindParam(":paginaEdita", $paginaSelecionada, PDO::PARAM_STR);
+                $stmt->execute();
+                $sqlresult = $stmt->fetchAll(PDO::FETCH_ASSOC); // retorna FALSO se o resultado do SELECT for vazio
+            } catch (\PDOException $e) {
+                echo "Erro na conexão ao Banco de Dados \n";
+                echo $e->getMessage() . "\n";
+                echo $e->getTraceAsString() . "\n";
+            }
+            // DEU TUDO CERTO? CONSTROI O FORM com RADIOBUTTON
+            geraFormComCkeditor ($sqlresult);
+        } else {
+            // MENSAGEM SE A PAGINA NAO ESTIVER INSERIDA NO BANCO DE DADOS
+            echo "<li>Acesso não permitido!</li>";
+        }
         break;
     default:
         // MENSAGEM SE A ROTA NAO ESTIVER CADASTRADA NO BD
         echo "<li>Página não encontrada.</li>";
         http_response_code(404);
-
 }
 ?>
 
@@ -244,5 +282,10 @@ if ($sqlresult != false and count($sqlresult) >= 0) {
 <!-- Fim da carga do rodapé -->
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
 <script src="./js/bootstrap.js"></script>
+<script src="//cdn.ckeditor.com/4.5.9/standard/ckeditor.js"></script>
+<script>
+    CKEDITOR.replace('editor1');
+</script>
+
 </body>
 </html>
