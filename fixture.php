@@ -33,8 +33,7 @@ echo "Criando tabela paginasHTML \n";
 try {
     $conn->query("CREATE TABLE paginasHTML (
               rotas_arquivo VARCHAR(45) CHARACTER SET utf8,
-              taginicial VARCHAR(10) CHARACTER SET utf8,
-              tagfinal VARCHAR(10) CHARACTER SET utf8,
+              comandoAlt VARCHAR(10) CHARACTER SET utf8,
               linhaHTML TEXT CHARACTER SET utf8,
                   CONSTRAINT fk_arquivo
                   FOREIGN KEY (rotas_arquivo)
@@ -123,8 +122,8 @@ foreach ($arr_response as $rota => $arquivo) {
 }
 
 // Array de rotas válidas para resposta de busca
-$arr_response = ['busca' => 'busca'];
-foreach ($arr_response as $rota => $arquivo) {
+$arr_buscas = ['busca' => 'busca'];
+foreach ($arr_buscas as $rota => $arquivo) {
     $smt = $conn->prepare("INSERT INTO rotas (rota, arquivo, tipo) value (:rota, :arquivo, 'B')");
     $smt->bindParam(":rota", $rota);
     $smt->bindParam(":arquivo", $arquivo);
@@ -132,8 +131,8 @@ foreach ($arr_response as $rota => $arquivo) {
 }
 
 // Array de rotas válidas para pagina administrativa
-$arr_response = ['Editar' => 'editar'];
-foreach ($arr_response as $rota => $arquivo) {
+$arr_admins = ['Editar' => 'editar'];
+foreach ($arr_admins as $rota => $arquivo) {
     $smt = $conn->prepare("INSERT INTO rotas (rota, arquivo, tipo) value (:rota, :arquivo, 'E')");
     $smt->bindParam(":rota", $rota);
     $smt->bindParam(":arquivo", $arquivo);
@@ -141,19 +140,38 @@ foreach ($arr_response as $rota => $arquivo) {
 }
 
 // Array de rotas válidas para edição propriamente dita com CkEditor
-$arr_response = ['CkEdit' => 'ckedit'];
-foreach ($arr_response as $rota => $arquivo) {
+$arr_edicao = ['CkEdit' => 'ckedit'];
+foreach ($arr_edicao as $rota => $arquivo) {
     $smt = $conn->prepare("INSERT INTO rotas (rota, arquivo, tipo) value (:rota, :arquivo, 'C')");
     $smt->bindParam(":rota", $rota);
     $smt->bindParam(":arquivo", $arquivo);
     $smt->execute();
 }
 
+// Array de rotas válidas (rota tipo 'G') para gravaçao do resultado do CkEditor (rota tipo 'C')
+$arr_gravacao = ['Gravar' => 'gravar'];
+foreach ($arr_gravacao as $rota => $arquivo) {
+    $smt = $conn->prepare("INSERT INTO rotas (rota, arquivo, tipo) value (:rota, :arquivo, 'G')");
+    $smt->bindParam(":rota", $rota);
+    $smt->bindParam(":arquivo", $arquivo);
+    $smt->execute();
+}
+
+// Array de rotas válidas (rota tipo 'L') para login de usuários
+$arr_login = ['login' => 'login'];
+foreach ($arr_login as $rota => $arquivo) {
+    $smt = $conn->prepare("INSERT INTO rotas (rota, arquivo, tipo) value (:rota, :arquivo, 'L')");
+    $smt->bindParam(":rota", $rota);
+    $smt->bindParam(":arquivo", $arquivo);
+    $smt->execute();
+}
+
+
 
 echo "Inserindo paginas html\n";
 $smt = $conn->query("
-INSERT INTO glicolog.paginasHTML (rotas_arquivo, taginicial, tagfinal, linhaHTML) VALUES
-( (SELECT arquivo from glicolog.rotas WHERE rotas.rota ='Empresa'), 'p', '/p',  'Nossa empresa iniciou seus trabalhos em 1980, com alta tecnologia, voltada para o crescimento sustentável a longo prazo.' )
+INSERT INTO glicolog.paginasHTML (rotas_arquivo, comandoAlt, linhaHTML) VALUES
+( (SELECT arquivo from glicolog.rotas WHERE rotas.rota ='Empresa'), '', 'Nossa empresa iniciou seus trabalhos em 1980, com alta tecnologia, voltada para o crescimento sustentável a longo prazo.' )
 ");
 echo "v--v\n";
 echo "-- Empresa --\n";
@@ -164,9 +182,8 @@ echo "\n";
 echo "^--^\n";
 
 $smt = $conn->query("
-INSERT INTO glicolog.paginasHTML (rotas_arquivo, taginicial, tagfinal, linhaHTML) VALUES
-( (SELECT arquivo from glicolog.rotas WHERE rotas.rota ='Produtos'), 'p', '', 'Nossos produtos são da mais alta qualidade!' ),
-( (SELECT arquivo from glicolog.rotas WHERE rotas.rota ='Produtos'), '', '/p', 'e toda nossa linha está ao seu dispor para você e sua família.' )
+INSERT INTO glicolog.paginasHTML (rotas_arquivo, comandoAlt, linhaHTML) VALUES
+( (SELECT arquivo from glicolog.rotas WHERE rotas.rota ='Produtos'), '', 'Produtos ótimos para você comprar e se deliciar' )
 ");
 echo "v--v\n";
 echo "-- Produtos --\n";
@@ -177,8 +194,8 @@ echo "\n";
 echo "^--^\n";
 
 $smt = $conn->query("
-INSERT INTO glicolog.paginasHTML (rotas_arquivo, taginicial, tagfinal, linhaHTML) VALUES
-( (SELECT arquivo from glicolog.rotas WHERE rotas.rota ='Servicos'), 'p', '/p', 'Temos serviços adequados a sua realidade!' )
+INSERT INTO glicolog.paginasHTML (rotas_arquivo, comandoAlt, linhaHTML) VALUES
+( (SELECT arquivo from glicolog.rotas WHERE rotas.rota ='Servicos'), '', 'Temos serviços adequados a sua realidade!' )
 ");
 echo "v--v\n";
 echo "-- Servicos --\n";
@@ -189,8 +206,8 @@ echo "\n";
 echo "^--^\n";
 
 $smt = $conn->query("
-INSERT INTO glicolog.paginasHTML (rotas_arquivo, taginicial, tagfinal, linhaHTML) VALUES
-( (SELECT arquivo from glicolog.rotas WHERE rotas.rota ='Home'), 'p', '/p', 'Página inicial, a.k.a., Home.' )
+INSERT INTO glicolog.paginasHTML (rotas_arquivo, comandoAlt, linhaHTML) VALUES
+( (SELECT arquivo from glicolog.rotas WHERE rotas.rota ='Home'), '', 'Página inicial, a.k.a., Home.' )
 ");
 echo "v--v\n";
 echo "-- Home --\n";
@@ -201,9 +218,9 @@ echo "\n";
 echo "^--^\n";
 
 $smt = $conn->query("
-INSERT INTO glicolog.paginasHTML (rotas_arquivo, taginicial, tagfinal, linhaHTML) VALUES
-( (SELECT arquivo from glicolog.rotas WHERE rotas.rota ='rodape'), 'h3', '', 'Todos os direitos reservados - ' ),
-( (SELECT arquivo from glicolog.rotas WHERE rotas.rota ='rodape'), 'data', '/h3', 'Y' )
+INSERT INTO glicolog.paginasHTML (rotas_arquivo, comandoAlt, linhaHTML) VALUES
+( (SELECT arquivo from glicolog.rotas WHERE rotas.rota ='rodape'), '', 'Todos os direitos reservados - ' ),
+( (SELECT arquivo from glicolog.rotas WHERE rotas.rota ='rodape'), 'data', 'Y' )
 ");
 echo "v--v\n";
 echo "-- Rodape --\n";

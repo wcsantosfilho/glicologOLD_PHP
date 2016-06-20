@@ -11,29 +11,19 @@ function geraPaginaConteudo($sqlresult)
         echo '<div class="jumbotron">';
 
         foreach ($sqlresult as $linhas) {
-            $tagI = $linhas['taginicial'];
-            $tagF = $linhas['tagfinal'];
+            $cmdAlt = $linhas['comandoAlt'];
             $linhaHT = $linhas['linhaHTML'];
-            switch ($tagI) {
+            switch ($cmdAlt) {
                 case "data":
-                    if (count($tagI) > 0 and !empty($tagI)) {
-                        echo "<$tagI>";
+                    if (count($cmdAlt) > 0 and !empty($cmdALt)) {
+                        echo "<$cmdAlt>";
                     }
                     $varData = $linhaHT;
                     echo date($varData);
-                    if (count($tagF) > 0 and !empty($tagF)) {
-                        echo "<$tagF>";
-                    }
                     break;
                 default:
-                    if (count($tagI) > 0 and !empty($tagI)) {
-                        echo "<$tagI>";
-                    }
                     if (count($linhaHT) > 0 and !empty($linhaHT)) {
                         echo $linhaHT;
-                    }
-                    if (count($tagF) > 0 and !empty($tagF)) {
-                        echo "<$tagF>";
                     }
                     break;
             }
@@ -108,29 +98,19 @@ function geraRodape($sqlresult)
         echo '<div class="row-fluid">';
 
         foreach ($sqlresult as $linhas) {
-            $tagI = $linhas['taginicial'];
-            $tagF = $linhas['tagfinal'];
+            $cmdAlt = $linhas['comandoAlt'];
             $linhaHT = $linhas['linhaHTML'];
-            switch ($tagI) {
+            switch ($cmdAlt) {
                 case "data":
-                    if (count($tagI) > 0 and !empty($tagI)) {
-                        echo "<$tagI>";
+                    if (count($cmdAlt) > 0 and !empty($cmdAlt)) {
+                        echo "<$cmdAlt>";
                     }
                     $varData = $linhaHT;
                     echo date($varData);
-                    if (count($tagF) > 0 and !empty($tagF)) {
-                        echo "<$tagF>";
-                    }
                     break;
                 default:
-                    if (count($tagI) > 0 and !empty($tagI)) {
-                        echo "<$tagI>";
-                    }
                     if (count($linhaHT) > 0 and !empty($linhaHT)) {
                         echo $linhaHT;
-                    }
-                    if (count($tagF) > 0 and !empty($tagF)) {
-                        echo "<$tagF>";
                     }
             }
         }
@@ -223,7 +203,7 @@ function geraFormEscolhePaginaParaEditar($sqlresult)
 {
     if (empty($sqlresult)) {
         echo '<div class="panel panel-default">';
-        echo '<div class="panel-heading">Não foram encontrados resultados para: <b>' . $textobusca . '</b>.</div>';
+        echo '<div class="panel-heading">Não foi encontrada a página para editar!</div>';
     } else {
         echo '<div class="container-fluid">';
         echo '<div class="row">';
@@ -233,7 +213,7 @@ function geraFormEscolhePaginaParaEditar($sqlresult)
         echo '<div class="panel panel-default">';
         echo '<div class="panel-heading">Páginas para Edição</div>';
         echo '<div class="panel-body">';
-        echo '<form class="form" role="form" id="optaEdita" action="/ckedit" method="get">';
+        echo '<form class="form" role="form" id="optaEdita" action="/ckedit" method="GET">';
         echo '<div class="control-group">';
         echo '<div class="controls">';
         foreach ($sqlresult as $rota_menu) {
@@ -256,16 +236,14 @@ function geraFormEscolhePaginaParaEditar($sqlresult)
     echo '</div>'; // panel-default ou container-fluid
 }
 
-function geraFormComCkeditor($sqlresult)
+function geraFormComCkeditor($sqlresult, $paginaSelecionada)
 {
     if (empty($sqlresult)) {
         echo '<div class="panel panel-default">';
         echo '<div class="panel-heading">A consulta não trouxe resultados!</div>';
     } else {
-        $conteudo = "";
-        foreach ($sqlresult as $linhas_html) {
-            $conteudo.=$linhas_html['linhaHTML'];
-        }
+        echo '<br>' . 'sqlresult';
+        $conteudo = $sqlresult['linhaHTML'];
         echo '<div class="container-fluid">';
         echo '<div class="row">';
         echo '<div class="col-md-2">';
@@ -274,7 +252,8 @@ function geraFormComCkeditor($sqlresult)
         echo '<div class="panel panel-default">';
         echo '<div class="panel-heading">Edite a página selecionada e clique em Gravar ao final da Edição.</div>';
         echo '<div class="panel-body">';
-        echo '<form class="navbar - form navbar - left" role="gravar" action="/gravar" method="put">';
+        echo '<form class="navbar - form navbar - left" role="gravar" action="/gravar" method="POST">';
+        echo '<input type="text" class="form-control" name="paginaSelecionada" value="' . $paginaSelecionada  . '" readonly>';
         echo '<div class="form - group">';
         echo '<textarea name="editor1">' . $conteudo . '</textarea>';
         echo '</div>';
